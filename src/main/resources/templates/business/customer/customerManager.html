@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:shiro="http://www.pollix.at/thymeleaf/shiro">
+<head>
+    <meta charset="UTF-8">
+    <title>Right</title>
+    <meta name="renderer" content="webkit">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <meta http-equiv="Access-Control-Allow-Origin" content="*">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="format-detection" content="telephone=no">
+    <link rel="icon" href="/resources/favicon.ico">
+    <link rel="stylesheet" href="resources/layui/css/layui.css" th:href="@{/resources/layui/css/layui.css}" media="all"/>
+    <link rel="stylesheet" th:href="@{/resources/css/public.css}" media="all"/>
+    <link rel="stylesheet" th:href="@{/resources/layui_ext/dtree/dtree.css}" media="all"/>
+    <link rel="stylesheet" th:href="@{/resources/layui_ext/dtree/font/dtreefont.css}" media="all"/>
+    <link rel="stylesheet" th:href="@{/resources/css/select2.min.css}" media="all"/>
+    <script type="text/javascript" src="/resources/js/jquery-3.7.1.min.js"></script>
+    <script type="text/javascript" src="/resources/js/select2.full.min.js"></script>
+
+    <style>
+        .left-content {
+            float: left;
+            width: 50%;
+        }
+
+        .short-input {
+            width: 250px;
+        }
+        .layui-form-item{
+            margin-top: 30px;
+        }
+
+    </style>
+</head>
+<body>
+
+<!--添加-->
+    <div class="layui-container">
+        <div class="layui-form-item">
+            <h1>物品取走登记</h1>
+        </div>
+        <form class="layui-form" id="pickupForm" >
+            <div class="left-content">
+
+                <div class="layui-form-item">
+                    <label class="layui-form-label">物品名称</label>
+                    <div class="layui-input-block">
+                        <!-- 确保这里只有一个select元素 -->
+                        <select  id="itemSelect" lay-verify="required" name="itemname" class="short-input" lay-filter="myFilter" >
+                            <!-- 这里是动态添加的选项 -->
+                        </select>
+                        <div>
+                            <p style="color: #ff9831;font-family: 'Adobe 楷体 Std R'">请使用上面的下拉列表(带物品搜索功能)</p>
+                        </div>
+                    </div>
+                </div>
+
+
+                <div class="layui-form-item">
+                    <label class="layui-form-label">取货人</label>
+                    <div class="layui-input-block">
+                        <input type="text" name="recipient" lay-verify="required" placeholder="请输入取货人" class="layui-input short-input" >
+                    </div>
+                </div>
+                <div class="layui-form-item">
+                    <label class="layui-form-label">取走数量</label>
+                    <div class="layui-input-block">
+                        <input type="number" name="number" lay-verify="required" placeholder="请输入取走数量" class="layui-input short-input">
+                    </div>
+                </div>
+                <div class="layui-form-item">
+                    <label class="layui-form-label">取走时间</label>
+                    <div class="layui-input-block">
+                        <input type="text" name="time" id="timePicker" placeholder="点击输入框时间选择现在即可"  lay-verify="required" class="layui-input short-input" >
+                    </div>
+                </div>
+                <div class="layui-form-item">
+                    <label class="layui-form-label">项目编号</label>
+                    <div class="layui-input-block">
+                        <input type="text" name="projectid"  placeholder="请输入项目编号" class="layui-input short-input" >
+                    </div>
+                </div>
+                <div class="layui-form-item">
+                    <div class="layui-input-block">
+                        <button class="layui-btn" lay-submit lay-filter="registerPickup">提交</button>
+                    </div>
+                </div>
+
+            </div>
+
+        </form>
+    </div>
+
+<script type="text/javascript" src="/resources/layui/layui.js"></script>
+<script type="text/javascript">
+
+    //提升数据表格的作用域，因为底下还有一个reloadTable方法
+    var tableIns;
+
+    layui.use(['jquery', 'form', 'layer', 'table','laydate'], function () {
+        var $ = layui.jquery;
+        var form = layui.form;
+        var layer = layui.layer;
+        var table = layui.table;
+        var laydate = layui.laydate;
+
+        $(document).ready(function() {
+            // 初始化Select2
+            $('#itemSelect').select2({ width: 'resolve' });
+            $.get('/goods/loadAllGoodsForSelect', function (res) {
+                var data = res.data;
+                if (data && data.length > 0) {
+                    var dom = $("#itemSelect"); // 获取下拉列表元素
+                    var html = '<option value="0">请选择物品</option>';
+                    $.each(data, function (index, item) {
+                        html += '<option value="' + item.id + '" data-name="' + item.goodsname + '">' + item.goodsname + '</option>';
+                    });
+                    dom.html(html);
+                    dom.select2({ width: 'resolve' }); // 初始化Select2，如果需要可以设置宽度
+                    // 禁用Layui的下拉渲染
+                    form.render(null, 'itemSelect'); // 使用一个独特的过滤器名称来阻止Layui重新渲染select2控件
+                    // 注意：这里不需要再调用 form.render(); 防止Layui重新渲染下拉列表
+                }
+            });
+        });
+
+        // 在页面加载完成后初始化时间选择器
+        //执行一个laydate实例
+        laydate.render({
+            elem: '#timePicker',
+            type: 'datetime',
+            format: 'yyyy-MM-dd HH:mm', // 设定时间格式
+        });
+
+
+        // 表单提交成功后的回调函数
+        function successFunc() {
+            // 刷新页面
+            window.location.reload();
+        }
+
+         // 监听提交
+         form.on('submit(registerPickup)', function (data) {
+
+             var itemSelect = $('select[name="itemname"]');
+             var selectedOption = itemSelect.find('option:selected');
+             var itemId = selectedOption.val();
+             var itemName = selectedOption.data('name'); // 获取物品名称
+
+
+             var pickupData = {
+                 id: itemId,
+                 itemname: itemName, // 将物品名称一同传递给后端
+                 recipient: data.field.recipient,
+                 number: data.field.number,
+                 time: data.field.time,
+                 projectid: data.field.projectid
+             };
+
+                 // 使用Ajax请求检查库存
+                $.ajax({
+                    type: 'GET',
+                    url: '/customer/checkInventory/' + itemId + '/' + data.field.number, // 向后端发送物品ID和取货数量
+                    success: function (result) {
+                        if (result.code === 200) {
+                            // 库存充足，继续提交
+                            submitPickupData(pickupData);
+                        } else {
+                            // 库存不足，显示错误信息
+                            layer.msg('库存不足，登记失败', { icon: 2 });
+                            setTimeout(successFunc, 1500);
+                        }
+                    }
+                });
+                return false; // 阻止表单跳转
+            });
+
+            // 提交取货数据
+            function submitPickupData(pickupData) {
+
+                // 使用Ajax提交表单数据到后端控制器
+                $.ajax({
+                    type: 'POST',
+                    url: '/customer/registerPickup',
+                    data: JSON.stringify(pickupData),
+                    contentType: 'application/json',
+                    success: function (result) {
+                        if (result.code === 200) {
+                            // 成功，跳转或显示成功信息
+                            // 刷新表单
+                            form.render('select');
+                            // 清空表单数据
+                            form.val('pickupForm', {
+                                'recipient': '',  // 设置recipient字段为空
+                                'number': '',     // 设置number字段为空
+                                'time': '',       // 设置time字段为空
+                                'itemname': '' ,   // 设置itemname字段为空
+                                'projectid': ''   // 设置projectid字段为空 'projectid': ''
+                            });
+
+                            layer.msg('登记成功', { icon: 1 });
+                            // 调用回调函数
+                            setTimeout(successFunc, 1500);
+                            //successFunc();
+
+                            // 可以添加跳转逻辑或其他处理
+                        } else {
+                            // 失败，显示错误信息
+                            layer.msg('登记失败', { icon: 2 });
+
+                        }
+                    }
+                });
+
+            }
+
+
+    });
+
+
+</script>
+
+</body>
+</html>

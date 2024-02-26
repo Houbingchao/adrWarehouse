@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:shiro="http://www.pollix.at/thymeleaf/shiro">
+<head>
+    <meta charset="UTF-8">
+    <title>Right</title>
+    <meta name="renderer" content="webkit">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <meta http-equiv="Access-Control-Allow-Origin" content="*">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="format-detection" content="telephone=no">
+    <link rel="icon" href="/resources/favicon.ico">
+    <link rel="stylesheet" href="resources/layui/css/layui.css" th:href="@{/resources/layui/css/layui.css}" media="all"/>
+    <link rel="stylesheet" th:href="@{/resources/css/public.css}" media="all"/>
+    <link rel="stylesheet" th:href="@{/resources/layui_ext/dtree/dtree.css}" media="all"/>
+    <link rel="stylesheet" th:href="@{/resources/layui_ext/dtree/font/dtreefont.css}" media="all"/>
+    <style>
+        input#search_provideridTree_select_input_id {
+            border-radius: 10px;
+            height: 30px;
+            margin-top: 4px;
+        }
+        input#provideridTree_select_input_id {
+            border-radius: 10px;
+            height: 30px;
+            margin-top: 4px;
+        }
+        input#leaderprovideridTree_select_input_id {
+            border-radius: 10px;
+            height: 30px;
+            margin-top: 4px;
+        }
+        input.layui-input.layui-unselect {
+            border-radius: 10px;
+            height: 30px;
+            margin-top: 4px;
+        }
+    </style>
+</head>
+<body>
+<!--查询条件-->
+<fieldset class="layui-elem-field layui-field-title" style="margin-top: 15px;">
+    <legend>搜索条件</legend>
+</fieldset>
+<form action="" method="post" id="searchFrm" lay-filter="searchFrm" class="layui-form">
+
+    <div class="layui-form-item">
+        <span id="username" style="display: none" th:text="${session.username}">Username</span>
+        <div class="layui-inline">
+            <label class="layui-form-label">物品名称</label>
+            <div class="layui-input-inline">
+                <input type="text" name="goodsname" id="goodsname" class="layui-input input-radius"
+                       placeholder="请输入物品名称">
+            </div>
+        </div>
+        <div class="layui-inline">
+            <label class="layui-form-label">物品品牌</label>
+            <div class="layui-input-inline">
+                <input type="text" name="brand" id="brand" class="layui-input input-radius"
+                       placeholder="请输入物品品牌">
+            </div>
+        </div>
+        <div class="layui-inline" style="padding-left: 3%">
+            <button type="button" class="layui-btn layui-btn-sm layui-btn-radius" lay-submit="" lay-filter="doSearch"><i
+                    class="layui-icon layui-icon-search layui-icon-normal"></i>查询
+            </button>
+            <button type="reset" class="layui-btn layui-btn-sm layui-btn-radius layui-btn-warm"><i
+                    class="layui-icon layui-icon-refresh"></i><span>重置</span>
+            </button>
+        </div>
+    </div>
+</form>
+
+<!--数据表格-->
+<div>
+    <table class="layui-hide" id="goodsTable" lay-filter="goodsTable" style="height: 420px"></table>
+    <div id="goodsToolBar" style="display: none">
+        <button type="button" lay-event="add" shiro:hasPermission="goods:create" class="layui-btn layui-btn-sm layui-btn-normal layui-btn-radius">
+            <i class="layui-icon layui-icon-add-1"></i>添加物品
+        </button>
+    </div>
+    <div id="goodsRowBar" style="display: none;">
+        <button type="button" lay-event="update" shiro:hasPermission="goods:update" class="layui-btn layui-btn-sm layui-btn-radius"><i
+                class="layui-icon layui-icon-edit"></i>编辑
+        </button>
+        <button type="button" lay-event="delete" shiro:hasPermission="goods:delete"  class="layui-btn layui-btn-sm layui-btn-danger layui-btn-radius"><i
+                class="layui-icon layui-icon-delete"></i>删除
+        </button>
+<!--        shiro:hasPermission="goods:delete"-->
+    </div>
+</div>
+
+<!--添加和修改弹出层-->
+<div id="addOrUpdateDiv" style="display: none;padding: 10px;padding-right: 5%">
+    <form action="" method="post" class="layui-form" id="dataFrm" lay-filter="dataFrm">
+        <div class="layui-col-md12 layui-col-xs12">
+            <div class="layui-row layui-col-space10">
+                <div class="layui-col-md9 layui-col-xs7">
+
+                    <div class="layui-form-item">
+                        <label class="layui-form-label">物品名称</label>
+                        <div class="layui-input-block">
+                            <input type="hidden" name="id">
+                            <input id="checkgoodsname" type="text" class="layui-input input-radius" name="goodsname" lay-verify="required" placeholder="请输入商品名称">
+                        </div>
+                    </div>
+                    <div class="layui-form-item">
+                        <label class="layui-form-label">物品位置</label>
+                        <div class="layui-input-block">
+                            <input type="text" class="layui-input input-radius" name="position" lay-verify="required" placeholder="请输入物品位置">
+                        </div>
+                    </div>
+                    <div class="layui-inline">
+                        <label class="layui-form-label">入库数量</label>
+                        <div class="layui-input-inline">
+                            <input type="text" class="layui-input input-radius" name="number" lay-verify="required|number" placeholder="请输入物品入库数量">
+                        </div>
+                    </div>
+                    <div class="layui-form-item">
+                        <label class="layui-form-label">品牌</label>
+                        <div class="layui-input-block">
+                            <input type="text" class="layui-input input-radius" name="brand" lay-verify="required" placeholder="请输入物品品牌">
+                        </div>
+                    </div>
+                    <div class="layui-form-item">
+                        <label class="layui-form-label">入库人</label>
+                        <div class="layui-input-block">
+                            <input type="text" class="layui-input input-radius" name="person" lay-verify="required" placeholder="请输入录入人姓名">
+                        </div>
+                    </div>
+                    <div class="layui-form-item">
+                        <label class="layui-form-label">订货号</label>
+                        <div class="layui-input-block">
+                            <input type="text" class="layui-input input-radius" name="orders" lay-verify="required" placeholder="请输入订货号">
+                        </div>
+                    </div>
+                    <div class="layui-form-item">
+                        <label class="layui-form-label">项目编号</label>
+                        <div class="layui-input-block">
+                            <input type="text" class="layui-input input-radius" name="projectid"  placeholder="请输入项目编号">
+                        </div>
+                    </div>
+                    <!--  添加 入库时间 -->
+                    <div class="layui-form-item">
+                        <label class="layui-form-label">入库时间</label>
+                        <div class="layui-input-block">
+                            <input type="text" name="time" id="timePicker"  lay-verify="required" class="layui-input short-input" placeholder="点击输入框选择现在" >
+                        </div>
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+        <div class="layui-form-item">
+            <div class="layui-input-block" style="text-align: center;padding-right: 7%">
+                <button type="button" class="layui-btn layui-btn-radius" lay-submit="" lay-filter="doSubmit" id="doSubmit"><i
+                        class="layui-icon layui-icon-search layui-icon-normal"></i>提交
+                </button>
+                <button type="reset" class="layui-btn layui-btn-radius layui-btn-warm"><i
+                        class="layui-icon layui-icon-refresh"></i><span>重置</span>
+                </button>
+            </div>
+        </div>
+    </form>
+</div>
+
+<script type="text/javascript" src="/resources/layui/layui.js"></script>
+
+<script type="text/javascript">
+
+    //提升数据表格的作用域，因为底下还有一个reloadTable方法
+    var tableIns;
+
+    layui.use(['jquery', 'form', 'layer', 'table','upload','laydate'], function () {
+        var $ = layui.jquery;
+        var form = layui.form;
+        var layer = layui.layer;
+        var table = layui.table;
+        var upload = layui.upload;
+        var laydate = layui.laydate;
+
+
+        //初始化表格 加载数据
+        tableIns = table.render({
+            elem: "#goodsTable",
+            title: "物品数据表格",
+            url: "/goods/loadAllGoods",
+            toolbar: "#goodsToolBar",
+            page: true,
+            height: 530,
+            cols: [ [
+                {field: 'id', title: 'ID', align: 'center',width:'70'},
+                {field: 'goodsname', title: '物品名称', align: 'center',width:'170'},
+                {field: 'position', title: '物品位置', align: 'center',width:'120'},
+                {field: 'number', title: '数量', align: 'center',width:'80'},
+                {field: 'brand', title: '品牌', align: 'center',width:'120'},
+                {field: 'person', title: '入库人', align: 'center',width:'100'},
+                {field: 'orders', title: '订货号', align: 'center',width:'150'},
+                {field: 'projectid', title: '项目编号', align: 'center',width:'100'},
+                {field: 'time', title: '入库/添加时间', align: 'center',width:'170'},
+                {fixed: 'right', title: '操作', toolbar: '#goodsRowBar', align: 'center',width:'180'}
+            ] ],
+            done: function (data, curr, count) {
+                //不是第一页时，如果当前返回的数据为0那么就返回上一页
+                if (data.data.length == 0 && curr != 1) {
+                    tableIns.reload({
+                        page: {
+                            curr: curr - 1
+                        }
+                    })
+                }
+            }
+        });
+
+
+        // 在页面加载完成后初始化时间选择器
+        //执行一个laydate实例
+        laydate.render({
+            elem: '#timePicker',
+            type: 'datetime',
+            format: 'yyyy-MM-dd HH:mm', // 设定时间格式
+        });
+
+
+
+        //监控模糊查询按钮事件
+        form.on("submit(doSearch)", function (data) {
+            tableIns.reload({
+                where: data.field,
+                page: {
+                    curr: 1
+                }
+            });
+            return false;
+        });
+
+        //监控工具条事件
+        table.on("toolbar(goodsTable)", function (obj) {
+            switch (obj.event) {
+                case 'add':
+                    openAddLayer();
+                    break;
+                case 'deleteBatch':
+                    batchDeleteGoods();
+                    break;
+            };
+        });
+
+        //监控行工具条事件
+        table.on("tool(goodsTable)", function (obj) {
+            //获取当前行数据
+            var data = obj.data;
+            switch (obj.event) {
+                case 'delete':
+                    deleteGoods(data);
+                    break;
+                case 'update':
+                    updateGoods(data);
+                    break;
+            };
+        });
+
+        //文件上传
+        // upload.render({
+        //     elem: '.thumbBox',
+        //     url: '/file/uploadFile',
+        //     acceptMime:'image/*',
+        //     field:'mf',
+        //     method : "post",
+        //     done: function(res, index, upload){
+        //         var path=res.path;
+        //         $('.thumbImg').attr('src','/file/showImageByPath?path='+path);
+        //         $('.thumbBox').css("background","#fff");
+        //         //给隐藏域赋值
+        //         $("#goodsimg").val(path);
+        //     }
+        // });
+
+        var mainIndex;
+        var url;
+
+        //打开添加弹出层
+        function openAddLayer() {
+            mainIndex = layer.open({
+                type:1,
+                content:$("#addOrUpdateDiv"),
+                area:['670px','580px'],
+                title:'添加物品',
+                success:function () {
+                    $("#dataFrm")[0].reset();
+                    url="/goods/addGoods";
+
+
+                    //----------------------------------------------------------
+                    // 监听物品名称输入框失去焦点事件
+                    $("#checkgoodsname").blur(function () {
+                        // 获取用户输入的物品名称
+                        var goodsName = $(this).val();
+
+                        // 向后端发送请求，检查物品名是否已存在
+                        $.ajax({
+                            url: "/goods/checkGoodsName",
+                            type: "POST",
+                            data: { goodsName: goodsName },
+                            success: function (res) {
+                                if (res.code !== 200) {
+                                    // 物品名重复，给出提示
+                                    layer.msg(res.msg ,{ time: 3000 });
+                                    // 清空物品输入框的值
+                                    $("#checkgoodsname").val("");
+
+                                }
+                            },
+                            error: function (err) {
+                                console.error("Error checking goods name:", err);
+                            }
+                        });
+                    });
+                    //----------------------------------------------------------
+
+
+                }
+            });
+        }
+
+        //打开修改的弹出层
+        function updateGoods(data) {
+            mainIndex = layer.open({
+                type:1,
+                content:$("#addOrUpdateDiv"),
+                area:['700px','500px'],
+                title:'修改物品',
+                success:function () {
+                    //清空原有的数据
+                    $("#dataFrm")[0].reset();
+                    //装载新的数据
+                    form.val("dataFrm",data);
+
+                    url="/goods/updateGoods";
+
+
+
+                }
+            });
+        }
+
+
+        form.on("submit(doSubmit)",function (data) {
+            $.post(url,data.field,function (res) {
+                if (res.code==200){
+                    tableIns.reload();
+                }
+                layer.msg(res.msg);
+                layer.close(mainIndex);
+                //setTimeout(successFunc, 1500);
+            });
+            return false;
+        });
+
+        //删除
+        function deleteGoods(data) {
+            layer.confirm('你确定要删除【' + data.goodsname + '】这个物品吗？', {icon: 3, title: '提示'}, function (index) {
+                $.post("/goods/deleteGoods", {id: data.id},function (res) {
+                    if (res.code == 200) {
+                        tableIns.reload({
+                            where:"",
+                        });
+                    }
+                    layer.msg(res.msg);
+                });
+                layer.close(index);
+            });
+        }
+
+
+    });
+
+    //原生js的方式实现普通员工的操作权限
+
+    // 确保DOM完全加载后再运行JavaScript
+    document.addEventListener('DOMContentLoaded', (event) => {
+        // 获取用户名
+        var usernameElement = document.getElementById("username");
+        var username = usernameElement.textContent.trim(); // 去除用户名前后可能的空格
+
+        // 获取按钮元素
+        var goodsToolBar = document.getElementById("goodsToolBar");
+        var goodsRowBar = document.getElementById("goodsRowBar");
+        var addButton = document.querySelector('#goodsToolBar button[lay-event="add"]');
+        var editButton = document.querySelector('#goodsRowBar button[lay-event="update"]');
+        var deleteButton = document.querySelector('#goodsRowBar button[lay-event="delete"]');
+
+        // 判断用户名并显示/隐藏按钮
+        if (username === "system") {
+            //goodsToolBar.style.display = "block"; // 显示工具栏
+            //goodsRowBar.style.display = "block";   // 显示行操作栏
+            addButton.style.display = "block";
+            editButton.style.display = "inline-block";
+            deleteButton.style.display = "inline-block";
+        } else if (username === "adr") {
+            goodsToolBar.style.display = "none";
+            goodsRowBar.style.display = "none";
+            addButton.style.display = "none";
+            editButton.style.display = "none";
+            deleteButton.style.display = "none";
+        }
+    });
+
+
+
+</script>
+
+</body>
+</html>

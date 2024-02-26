@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:shiro="http://www.pollix.at/thymeleaf/shiro">
+<head>
+    <meta charset="UTF-8">
+    <title>Right</title>
+    <meta name="renderer" content="webkit">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <meta http-equiv="Access-Control-Allow-Origin" content="*">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="format-detection" content="telephone=no">
+    <link rel="icon" href="/resources/favicon.ico">
+    <link rel="stylesheet" href="resources/layui/css/layui.css" th:href="@{/resources/layui/css/layui.css}" media="all"/>
+    <link rel="stylesheet" th:href="@{/resources/css/public.css}" media="all"/>
+    <link rel="stylesheet" th:href="@{/resources/layui_ext/dtree/dtree.css}" media="all"/>
+    <link rel="stylesheet" th:href="@{/resources/layui_ext/dtree/font/dtreefont.css}" media="all"/>
+
+</head>
+<body>
+
+<!--检索块-->
+<div>
+    <h3 style="color: #ff9831"> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;使用提示：1.可以输入想要导出或打印的时间范围、物品名、入库人来进行筛选查询。2.使用表格右上角的三个功能小图标进行筛选、导出、打印</h3>
+</div>
+
+<div class="layui-form-item">
+    <label class="layui-form-label">起始日期：</label>
+    <div class="layui-input-inline">
+        <input type="datetime-local" id="startDate" placeholder="yyyy-MM-dd" autocomplete="off" class="layui-input">
+    </div>
+    <label class="layui-form-label">结束日期：</label>
+    <div class="layui-input-inline">
+        <input type="datetime-local" id="endDate" placeholder="yyyy-MM-dd" autocomplete="off" class="layui-input">
+    </div>
+    <label class="layui-form-label">入库人：</label>
+    <div class="layui-input-inline">
+        <input type="text" id="person" placeholder="取件人" autocomplete="off" class="layui-input">
+    </div>
+    <label class="layui-form-label">物品名称：</label>
+    <div class="layui-input-inline">
+        <input type="text" id="goodsname" placeholder="物品名称" autocomplete="off" class="layui-input">
+    </div>
+    <label class="layui-form-label">项目编号：</label>
+    <div class="layui-input-inline">
+        <input type="text" id="projectid" placeholder="项目编号" autocomplete="off" class="layui-input">
+    </div>
+    <button class="layui-btn" id="searchBtn">查询</button>
+</div>
+
+
+<!--数据表格-->
+<div>
+    <table class="layui-hide" id="exportTable" lay-filter="exportTable"></table>
+</div>
+
+<script type="text/javascript" src="/resources/layui/layui.js"></script>
+<script type="text/javascript">
+
+    //提升数据表格的作用域，因为底下还有一个reloadTable方法
+    var tableIns;
+
+    layui.use(['jquery', 'form', 'layer', 'table'], function () {
+        var $ = layui.jquery;
+        var form = layui.form;
+        var layer = layui.layer;
+        var table = layui.table;
+
+        //初始化表格 加载数据
+        tableIns = table.render({
+            elem: "#exportTable",
+            title: "入库数据记录表格",
+            url: "/export/loadExportByConditions",
+            toolbar: "#exportToolBar",
+            //page: true,
+            height: 530,
+            cols: [ [
+                //{field: 'id', title: 'ID', align: 'center',width:'70'},
+                {field: 'goodsname', title: '物品名称', align: 'center',width:'170'},
+                //{field: 'position', title: '物品位置', align: 'center',width:'120'},
+                {field: 'brand', title: '品牌', align: 'center',width:'120'},
+                {field: 'person', title: '入库人', align: 'center',width:'100'},
+                {field: 'number', title: '数量', align: 'center',width:'80'},
+                //{field: 'orders', title: '订货号', align: 'center',width:'150'},
+                {field: 'time', title: '入库/添加时间', align: 'center',width:'170'},
+                {field: 'projectid', title: '项目编号', align: 'center',width:'100'}
+                //{fixed: 'right', title: '操作', toolbar: '#goodsRowBar', align: 'center',width:'180'}
+            ] ],
+
+        });
+
+        // 监听查询按钮点击事件
+        $('#searchBtn').on('click', function() {
+            var startDate = $('#startDate').val();
+            var endDate = $('#endDate').val();
+            var person = $('#person').val();
+            var goodsname = $('#goodsname').val();
+            var projectid = $('#projectid').val();
+            // 重新加载表格数据
+            tableIns.reload({
+                where: {  // 传递查询条件参数
+                    startDate: startDate,
+                    endDate: endDate,
+                    person: person,
+                    goodsname: goodsname,
+                    projectid: projectid,
+                },
+                page: {
+                    curr: 1  // 重新加载数据时，返回第一页
+                }
+            });
+        });
+
+
+
+    });
+
+</script>
+
+</body>
+</html>

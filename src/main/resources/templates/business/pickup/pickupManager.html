@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:shiro="http://www.pollix.at/thymeleaf/shiro">
+<head>
+    <meta charset="UTF-8">
+    <title>Right</title>
+    <meta name="renderer" content="webkit">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <meta http-equiv="Access-Control-Allow-Origin" content="*">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="format-detection" content="telephone=no">
+    <link rel="icon" href="/resources/favicon.ico">
+    <link rel="stylesheet" href="resources/layui/css/layui.css" th:href="@{/resources/layui/css/layui.css}" media="all"/>
+    <link rel="stylesheet" th:href="@{/resources/css/public.css}" media="all"/>
+    <link rel="stylesheet" th:href="@{/resources/layui_ext/dtree/dtree.css}" media="all"/>
+    <link rel="stylesheet" th:href="@{/resources/layui_ext/dtree/font/dtreefont.css}" media="all"/>
+
+</head>
+<body>
+
+<!--数据表格-->
+   <div>
+       <table class="layui-hide" id="customerTable" lay-filter="customerTable"></table>
+   </div>
+
+<script type="text/javascript" src="/resources/layui/layui.js"></script>
+<script type="text/javascript">
+
+    //提升数据表格的作用域，因为底下还有一个reloadTable方法
+    var tableIns;
+
+    layui.use(['jquery', 'form', 'layer', 'table'], function () {
+        var $ = layui.jquery;
+        var form = layui.form;
+        var layer = layui.layer;
+        var table = layui.table;
+
+
+        //分页查  初始化表格 加载数据
+        tableIns = table.render({
+            elem: "#customerTable",
+            title: "取件记录数据表格",
+            url: "/customer/loadAllCustomer",
+            //toolbar: "#customerToolBar",
+            page: true,
+            height: 530,
+            cols: [ [
+                //{type:'checkbox',fixed:'left'},
+                //{field: 'id', title: 'ID', align: 'center',width:'50'},
+                {field: 'itemname', title: '物品名称', align: 'center',width:'150'},
+                {field: 'recipient', title: '取件人', align: 'center',width:'150'},
+                {field: 'number', title: '取走数量', align: 'center',width:'140'},
+                {field: 'time', title: '取走时间', align: 'center',width:'200'},
+                {field: 'projectid', title: '项目编号', align: 'center',width:'200'}
+            ] ],
+            done: function (data, curr, count) {
+                //不是第一页时，如果当前返回的数据为0那么就返回上一页
+                if (data.data.length == 0 && curr != 1) {
+                    tableIns.reload({
+                        page: {
+                            curr: curr - 1
+                        }
+                    })
+                }
+            }
+        });
+
+
+
+    });
+
+</script>
+
+</body>
+</html>
